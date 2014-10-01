@@ -44,9 +44,8 @@ embedded= embedded(:,2:(d+2))
 [n,dim]= size(embedded);# get size of the embedded time series matrix
 
 #Work out the distances between points (ought to be vectorized)
-#Z= ones(((n*(n-1))/2),dim)#presize a matrix Z to hold the vectors
-Z = ones(1,dim)#presize a row vector
 
+Z = ones(1,dim)#presize a row vector
 
 
 for i= 1:n
@@ -57,7 +56,6 @@ z=repmat(z,(n-i),1);
 #then add onto Z
 Z= [Z;z];
 #rem=embedded(i+1:n,:)
-
 
 #Z=z(ones((n-i),1),:);
  #diffs = embedded((i+1):n,:)
@@ -137,7 +135,10 @@ Yhat = (A\B).*Xt
 Yhat = sum(Yhat)
 
 #now get the actual true data: 
-tru = 
+tru = logistic(1:20,:);
+#always rescale so Xt(0) = 1
+tru = tru.+(1-(x(m,:)))
+
 
 #w = e.^(-theta*dist(:,m)/distbar)
 
