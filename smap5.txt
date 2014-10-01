@@ -1,18 +1,19 @@
 
 ##S mapping 
 
-#will need to make into a function: 
+#will need to make into a function: I'll do this later.  
 #function smap = map(x,d,Tp,theta,y)
 
-load 'logistic.dat'
-x=logistic (1:20,:);
-x=flipud(x); #flip so that most recent at top!
-#x=rand(7,1);
-#preprocess the data: would split into development data x 
-#and test data y. then one minus the data if doing 
+load 'logistic.dat' #load up and pre-process a timeseries of data from the logisic map to use as an example 
+#as it is chaotic. 
+x=flipud(logistic); #flip so that most recent at top, so not going backwards.  
+
+x=logistic (20:40,:);
+
+#may need to then one minus the data if doing 
  #one step projection, or Tp minus if doing Tp steps. 
 
-m=length(x); #define m and d, theta and Tp (last 3 will be in function)
+m=length(x); #define m and d, theta and Tp (last 3 will be in function when done)
 d=2;
 Tp=1
 theta=1
@@ -20,7 +21,7 @@ theta=1
 x = x.+(1-(x(m,:)))
 
 #x=(x(1:m-1)).-(x(2:m)) # '1 minusing' the data reduced length by 1 (or Tp)
- #x=(x(1:m-Tp)).-(x(Tp+1:m))
+ #x=(x(1:m-Tp)).-(x(Tp+1:m)) 
 
 #redefine m: now x i Tp shorter.
 m = length(x);
@@ -102,14 +103,14 @@ far = Xi.-Xt;
 FAR = sqrt(sum(far.^2,2))
 
 #Simplex weights; inversely proportinal to distance
-simplexW = 1./FAR
+#simplexW = 1./FAR
 #add these together to get total distance: 
 #simplexWsum = sum(simplexW)
 #Adjust so total weights = 1
-simplexW = simplexW./sum(simplexW)
+#simplexW = simplexW./sum(simplexW)
 
 #therefore the weighted mean of Yi (Yhat) is 
-simpYhat = sum(Yi.*simplexW)
+#simpYhat = sum(Yi.*simplexW)
 
 #howfar = (embedded((2:n),:)).-(pointZ)
 #howfar = sqrt(sum(howfar.^2,2))
@@ -135,10 +136,8 @@ Yhat = (A\B).*Xt
 
 Yhat = sum(Yhat)
 
-
-#bxsfun(
-
-
+#now get the actual true data: 
+tru = 
 
 #w = e.^(-theta*dist(:,m)/distbar)
 
