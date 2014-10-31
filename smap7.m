@@ -1,22 +1,35 @@
 ##S mapping
-#will need to make into a function: I'll do this later. Now needs statistics package. 
-#function smap = map(x,d,Tp,theta,y)
-load 'logistic.dat' #load up and pre-process a timeseries of data from the logisic map to use as an example
+pkg load statistics
+
+#load 'logistic.dat' #load up and pre-process a timeseries of data from the logisic map to use as an example
 #as it is chaotic.
-x=flipud(logistic); #flip so that most recent at top, so not going backwards.
-x=logistic (20:50,:);
+#data=flipud(logistic); #flip so that most recent at top, so not going backwards.
+
+load 'tinkerbell.dat'
+data=flipud(tinkerbell);
+
+latest = 90
+earliest = 150
+x=data (latest:earliest,:);
+
+
+
+
+
 #may need to then one minus the data if doing
 #one step projection, or Tp minus if doing Tp steps.
 m=length(x); #define m and d, theta and Tp (last 3 will be in function when done)
 d=2;
 Tp=1
 theta=2
+
+#function smap = map(x,d,Tp,theta,y)
 #always rescale so Xt(0) = 1
-x = x.+(1-(x(m,:)))
+x = x.+(1-(x(m,:)));
 #x=(x(1:m-1)).-(x(2:m)) # '1 minusing' the data reduced length by 1 (or Tp)
 #x=(x(1:m-Tp)).-(x(Tp+1:m))
 #redefine m: now x i Tp shorter.
-m = length(x);
+#m = length(x);
 
 #embed the time series:
 #embed without using a loop
@@ -36,13 +49,13 @@ m = length(x);
 #embed the time series:
 m = length(x);
 embedded= ones((m-d),1); #presize a matrix
-embedded
-for i= 1:(d+1);
+for i= 1:d;
 col= x([i:(m-(d-(i-1)))],1);
 embedded= [embedded, col];
 endfor
 # this embedded has the original column of 1's, so chop them off:
-embedded= embedded(:,2:(d+2))
+embedded;
+embedded= embedded(:,2:(d+1));
 
 
 #embedded is now a matrix of d+1 columns and n-d-1 rows. 
@@ -66,28 +79,29 @@ Xi = embedded(Tp+2:Tp:n,:);
 #vector of distances between latest known point and every other point in library
 #i.e Work out (||Xi-Xt||)
 far = Xi.-Xt;
-FAR = sqrt(sum(far.^2,2))
+FAR = sqrt(sum(far.^2,2));
 
 #calculate weights
-weights = exp(-theta.*FAR./distbar)
+weights = exp(-theta.*FAR./distbar);
 #calculate Yhat: yhat = A inverse B Xt
 #where A = weight(||xi-Xt||)Xi and B = weight(||Xi-Xt||)Yi
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
 #Xi ended up at.
-B = weights.*Yi
-A = weights.*Xi
-Yhat = (A\B).*Xt
-Yhat = sum(Yhat)
+B = weights.*Yi;
+A = weights.*Xi;
+Yhat = (A\B).*Xt;
+Yhat = sum(Yhat);
 
 #now get the actual true value for the point from the data:
-tru = logistic(1:20,:);
+tru = data(1:latest,:);
 #always rescale so Xt(0) = 1
-tru = tru.+(1-(x(m,:)))
+tru = tru.+(1-(x(m,:)));
+
 
 #diagnostics: what happens when theta gets larger?
 Yhatvector = 1
-iter = 8
-for i=1:iter
+iter = 10
+for i=1:iter+1
     theta = i-1
     weights = exp(-theta.*FAR./distbar);
 
@@ -98,16 +112,40 @@ Yhat = sum(Yhat);
 Yhatvector = [Yhatvector;Yhat(1,1)];
 endfor
 
-axis = (1:iter)'
+axis = (0:iter)';
 
-#Difference from actual point: 
-Yt = tru(length(tru))
+#Difference from actual point Yt: 
+Yt = tru(length(tru));
 
 closeness = (Yhatvector(2:length(Yhatvector)).-Yt)
 
-plot (axis, closeness, 'o')
-#shows that most skillful at theta=3
-#gets within 0.4, which isn't great.
+#find the value of theta that gives best estimate, and how close it is:
+closeness2 = closeness.^2;
+[closest2, closetheta] = min(closeness2);
+closest=sqrt(closest2);
+closetheta = closetheta-1
+#use this value of theta:
+theta = closetheta
+weights = exp(-closetheta.*FAR./distbar);
+B = weights.*Yi;
+A = weights.*Xi;
+Yhat = (A\B).*Xt;
+Yhat = sum(Yhat);
+
+#Shows that for logistic map theta=0 is best
+#can try other data: 
+
+#plot(axis, closeness, 'x')
+
+plot3 (Xi(:,1), Xi (:,2), weights, 'p');
+hold on;
+plot3 (Xt(:,1), Xt (:,2), 0, 'o')
+
+##problem: when this is plotted for different values of x the points are displaced
+##by the adjustments to start at 1
+
 
 ##to use more data really need to put it into a function first...	
+
+
 
