@@ -88,15 +88,30 @@ endfunction
 #practice: [yt,cl] = smap(data,150,90,2,2,3)
 
 clvector=1
-for i=0:10
-[yt,cl] = smap(data,150,90,i,1,3);
+for i=0:20
+[yt,cl] = smap(data,150,90,1,1,i);
 clvector = [clvector;cl];
 endfor
-clvector = clvector(1:(length(clvector)))
-axis = 0:10
+clvector = clvector(2:(length(clvector)))
+axis = 0:20
 plot (axis, clvector, 'x')
 
-##not valid to change Tp as not properly accounted for in the function
-## for the logistic map best dimensionality is 2, time period 2 or 7, theta is 3
-# for tinkerbell best dimensionality is 8 , time period 3, theta is 1
+
+clvector=1
+for i=1:10
+[yt,cl] = smap(data,500,98,i,1,5);
+clvector = [clvector;cl];
+endfor
+clvector = clvector(2:(length(clvector)))
+axis = 1:10
+plot (axis, clvector, 'x')
+
+
+
+##not valid to change Tp as not properly accounted for in the function, can sort this out though by using the Tpth row of x
+#to redefine as x but stick with Tp==1 for now
+## for the logistic map best dimensionality is 2, theta is 3
+# for tinkerbell best dimensionality is 1 , theta is 10??
+#very variable results as only using one point for prediction: need to run a few times to do predictions from different
+#starting points and then take the mean.  
 
