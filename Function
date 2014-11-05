@@ -10,22 +10,17 @@ cd C:\Octave\Octave-3.8.2
 load 'tinkerbell.dat'
 data=flipud(tinkerbell);
 
-latest = 90
-earliest = 150
-x=data (latest:earliest,:);
-
-
-
-
-
 #may need to then one minus the data if doing
 #one step projection, or Tp minus if doing Tp steps.
 #define m and d, theta and Tp (last 3 will be in function when done)
-d=2;
-Tp=1
-theta=2
+#d=2;
+#Tp=1
+#theta=2
+#latest = 90
+#earliest = 150
 
-function [Yhat, closeness] = smap(x,d,Tp,theta,y)
+function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta,)
+x=data(latest:earliest,:);
 m=length(x); 
 #always rescale so Xt(0) = 1
 x = x.+(1-(x(m,:)));
@@ -75,7 +70,7 @@ Yhat = sum(Yhat);
 Yhat = Yhat(1,1)
 
 #now get the actual true value for the point from the data:
-tru = data(1:latest,:);
+tru = data(1:(latest-1),:);
 #always rescale so Xt(0) = 1
 tru = tru.+(1-(x(m,:)));
 
@@ -85,7 +80,7 @@ Yt = tru(length(tru));
 
 closeness = sqrt((Yhat-Yt)^2);
 
-endfunction
+  endfunction
 
 
 
