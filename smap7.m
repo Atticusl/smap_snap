@@ -93,7 +93,7 @@ Yhat = (A\B).*Xt;
 Yhat = sum(Yhat);
 
 #now get the actual true value for the point from the data:
-tru = data(1:(latest-1,:);
+tru = data(1:(latest-1),:);
 #always rescale so Xt(0) = 1
 tru = tru.+(1-(x(m,:)));
 
@@ -117,12 +117,12 @@ axis = (0:iter)';
 #Difference from actual point Yt: 
 Yt = tru(length(tru));
 
-closeness = (Yhatvector(2:length(Yhatvector)).-Yt)
+closeness = (Yhatvector(2:length(Yhatvector)).-Yt);
 
 #find the value of theta that gives best estimate, and how close it is:
 closeness2 = closeness.^2;
 [closest2, closetheta] = min(closeness2);
-closest=sqrt(closest2);
+closest=sqrt(closest2)
 closetheta = closetheta-1
 #use this value of theta:
 theta = closetheta
