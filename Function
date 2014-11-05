@@ -7,7 +7,7 @@ cd C:\Octave\Octave-3.8.2
 #as it is chaotic.
 #data=flipud(logistic); #flip so that most recent at top, so not going backwards.
 
-load 'tinkerbell.dat'
+load 'tinkerbell.dat';
 data=flipud(tinkerbell);
 
 #may need to then one minus the data if doing
@@ -19,69 +19,84 @@ data=flipud(tinkerbell);
 #latest = 90
 #earliest = 150
 
-function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta,)
-x=data(latest:earliest,:);
-m=length(x); 
-#always rescale so Xt(0) = 1
-x = x.+(1-(x(m,:)));
+function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
+
+  x=data(latest:earliest,:);
+  m=length(x); 
+  #always rescale so Xt(0) = 1
+  x = x.+(1-(x(m,:)));
 
 #embed the time series:
-m = length(x);
-embedded= ones((m-d),1); #presize a matrix
-for i= 1:d;
-col= x([i:(m-(d-(i-1)))],1);
-embedded= [embedded, col];
-endfor
+  m = length(x);
+  embedded= ones((m-d),1); #presize a matrix
+  for i= 1:d;
+  col= x([i:(m-(d-(i-1)))],1);
+  embedded= [embedded, col];
+  endfor
 # this embedded has the original column of 1's, so chop them off:
-embedded= embedded(:,2:(d+1));
+  embedded= embedded(:,2:(d+1));
 
 #embedded is now a matrix of d+1 columns and n-d-1 rows. 
-[n,dim]= size(embedded);# get size of the embedded time series matrix
+  [n,dim]= size(embedded);# get size of the embedded time series matrix
 
 #calculate distances between all points to get distbar
 #can do this using pdist (statistics package)
 #need to load statistics if not already done
 
-distbar =mean(pdist(embedded))  
+  distbar =mean(pdist(embedded))  
 
 #now need the distance between latest simplex and others:
 #Assumes most recent at the top
 
-Xt = embedded(1,:)
+  Xt = embedded(1,:)
 #Need Yi:
-Yi = embedded(2:Tp:n-Tp,:);
+  Yi = embedded(2:Tp:n-Tp,:);
 #And Xi:
-Xi = embedded(Tp+2:Tp:n,:);
+  Xi = embedded(Tp+2:Tp:n,:);
 #FAR is vector of distances between latest known point and every other point in library
 #i.e Work out (||Xi-Xt||)
-far = Xi.-Xt;
-FAR = sqrt(sum(far.^2,2));
+  far = Xi.-Xt;
+  FAR = sqrt(sum(far.^2,2));
 
 #calculate weights
-weights = exp(-theta.*FAR./distbar);
+  weights = exp(-theta.*FAR./distbar);
 #calculate Yhat: yhat = A inverse B Xt
 #where A = weight(||xi-Xt||)Xi and B = weight(||Xi-Xt||)Yi
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
 #Xi ended up at.
-B = weights.*Yi;
-A = weights.*Xi;
-Yhat = (A\B).*Xt;
-Yhat = sum(Yhat);
-Yhat = Yhat(1,1)
+  B = weights.*Yi;
+  A = weights.*Xi;
+  Yhat = (A\B).*Xt;
+  Yhat = sum(Yhat);
+  Yhat = Yhat(1,1)
 
 #now get the actual true value for the point from the data:
-tru = data(1:(latest-1),:);
+  tru = data(1:(latest-1),:);
 #always rescale so Xt(0) = 1
-tru = tru.+(1-(x(m,:)));
+  tru = tru.+(1-(x(m,:)));
 
 
 #Difference from actual point Yt: 
-Yt = tru(length(tru));
+  Yt = tru(length(tru));
 
-closeness = sqrt((Yhat-Yt)^2);
+  closeness = sqrt((Yhat-Yt)^2);
 
-  endfunction
+endfunction
 
 
+##now use the function:smap(data,earliest,latest,d,Tp,theta)
+#practice: [yt,cl] = smap(data,150,90,2,2,3)
 
+clvector=1
+for i=0:10
+[yt,cl] = smap(data,150,90,i,1,3);
+clvector = [clvector;cl];
+endfor
+clvector = clvector(1:(length(clvector)))
+axis = 0:10
+plot (axis, clvector, 'x')
+
+##not valid to change Tp as not properly accounted for in the function
+## for the logistic map best dimensionality is 2, time period 2 or 7, theta is 3
+# for tinkerbell best dimensionality is 8 , time period 3, theta is 1
 
