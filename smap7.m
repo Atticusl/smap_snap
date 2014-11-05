@@ -93,7 +93,7 @@ Yhat = (A\B).*Xt;
 Yhat = sum(Yhat);
 
 #now get the actual true value for the point from the data:
-tru = data(1:latest,:);
+tru = data(1:(latest-1,:);
 #always rescale so Xt(0) = 1
 tru = tru.+(1-(x(m,:)));
 
