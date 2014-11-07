@@ -9,7 +9,7 @@ load 'tinkerbell.dat'
 data=flipud(tinkerbell);
 
 latest = 90
-earliest = 150
+earliest = 100
 x=data (latest:earliest,:);
 
 
@@ -73,9 +73,9 @@ distbar =mean(pdist(embedded))
 Xt = embedded(1,:)
 #pointZ = repmat((embedded(1,:)),(n-1),1)
 #Need Yi:
-Yi = embedded(2:Tp:n-Tp,:);
+Yi = embedded(1:Tp:n-Tp,:);
 #And Xi:
-Xi = embedded(Tp+2:Tp:n,:);
+Xi = embedded(Tp+1:Tp:n,:);
 #vector of distances between latest known point and every other point in library
 #i.e Work out (||Xi-Xt||)
 far = Xi.-Xt;
@@ -87,6 +87,10 @@ weights = exp(-theta.*FAR./distbar);
 #where A = weight(||xi-Xt||)Xi and B = weight(||Xi-Xt||)Yi
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
 #Xi ended up at.
+m=Xi\Yi
+foo=m.*Xt
+
+
 B = weights.*Yi;
 A = weights.*Xi;
 Yhat = (A\B).*Xt;
