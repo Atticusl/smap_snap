@@ -40,8 +40,7 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
   [n,dim]= size(embedded);# get size of the embedded time series matrix
 
 #calculate distances between all points to get distbar
-#can do this using pdist (statistics package)
-#need to load statistics if not already done
+#can do this using pdist (statistics package) so need to load statistics if not already done
 
   distbar =mean(pdist(embedded))  
 
