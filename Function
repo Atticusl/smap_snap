@@ -113,5 +113,47 @@ plot (axis, clvector, 'x')
 ## for the logistic map best dimensionality is 2, theta is 3
 # for tinkerbell best dimensionality is 1 , theta is 10??
 #very variable results as only using one point for prediction: need to run a few times to do predictions from different
-#starting points and then take the mean.  
+#starting points and then take the mean.  There is a periodicity depending on the starting point. 
+
+clvector=1
+meanvector=1
+for j=1:10;
+  for i=1:30;
+  [yt,cl] = smap(data,(500+i),(100+i),j,1,0);
+  clvector = [clvector;cl];
+  endfor
+clvector = clvector(2:(length(clvector)));
+meandist=mean(clvector);
+meanvector=[meanvector;meandist];
+axis = 1:j
+endfor
+meanvector = meanvector(2:(length(meanvector)));
+
+
+plot (axis, meanvector, 'x')
+
+#tending to prefer nonlinear interpretation, probably because there is no noise and so maps are entirely deterministic.
+#try with noise added: 
+noise = stdnormal_rnd(length(data),1);
+noisydata = data.+noise;
+
+clvector=1
+meanvector=1
+for j=1:10;
+  for i=1:30;
+  [yt,cl] = smap(noisydata,(500+i),(100+i),1,1,j);
+  clvector = [clvector;cl];
+  endfor
+clvector = clvector(2:(length(clvector)));
+meandist=mean(clvector);
+meanvector=[meanvector;meandist];
+axis = 1:j
+endfor
+meanvector = meanvector(2:(length(meanvector)));
+
+
+plot (axis, meanvector, 'x')
+##This noisy data also tends to prefer lower dimensionality and embedding dimensions
+##In addition the predictions are not very good, nowhere near what is attained by Sugihara.
+#probably a glitch in the method somewhere...
 
