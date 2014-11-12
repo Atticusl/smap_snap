@@ -64,8 +64,8 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
 #Xi ended up at.
  
- change = Yi.-Xi;
- Yhat = sum(weights.*change);
+
+ Yhat = sum(weights.*Yi);
  Yhat = Yhat(1,1)
  
   #B = weights.*Yi;
