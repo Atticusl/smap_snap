@@ -40,8 +40,8 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
 
   x=data(latest:earliest,:);
   m=length(x); 
-  #always rescale so Xt(0) = 1
-  x = x.+(1-(x(m,:)));
+  #always rescale so Xt(0) = 1 //try not doing this
+  #x = x.+(1-(x(m,:)));
 
 #embed the time series:
   m = length(x);
@@ -74,8 +74,9 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
   far = Xi.-Xt;
   FAR = sqrt(sum(far.^2,2));
 
-#calculate weights
+#calculate weights These are not normalized, so divide by sum weights
   weights = exp(-theta.*FAR./distbar);
+  weights = weights./(sum(weights));
 #calculate Yhat: yhat = A inverse B Xt
 #where A = weight(||xi-Xt||)Xi and B = weight(||Xi-Xt||)Yi
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
@@ -93,24 +94,23 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
 
 #now get the actual true value for the point from the data:
   tru = data(1:(latest-1),:);
-#always rescale so Xt(0) = 1
-  tru = tru.+(1-(x(m,:)));
+#always rescale so Xt(0) = 1 //try not doing this
+ # tru = tru.+(1-(x(m,:)));
 
 
 #Difference from actual point Yt: 
   Yt = tru(length(tru));
-
-  closeness = sqrt((Yhat-Yt)^2);
+  closeness = sqrt((Yhat.-Yt)^2);
 
 endfunction
 
 
 ##now use the function:smap(data,earliest,latest,d,Tp,theta)
-#practice: [yt,cl] = smap(data,150,90,2,2,3)
+#practice: [yt,cl] = smap(data,150,90,2,1,3)
 
 clvector=1
-for i=0:3
-[yt,cl] = smap(data,150,90,2,1,i);
+for i=0:10
+[yt,cl] = smap(data,150,90,i,1,4);
 clvector = [clvector;cl]; 
 endfor
 clvector = clvector(2:(length(clvector)))
