@@ -1,0 +1,17 @@
+//from Dixon, P. A., M. J. Milicich, and G. Sugihara. (1999) Episodic fluctuations in larval supply. Science 283: 1528-1530
+//Footnote 11
+//For an embedded timeseries Xt is an element of real numbers to the m+1
+//Where the constant term is geven by Xt0==1 
+//and the time series value Tp steps forward is Xt +Tp(1) = Yt
+//forecasts Yhat = sum overj=0 to m Ct(j)Xt(j)
+//for each predictee Xt they used
+//singular value decomposition to solve for C
+//using the rest of the dataset:
+//B=AC
+//where Bi = w(||Xi-Xt||)Yi
+//Aij = w(||Xi-Xt||)Xi(j)
+//w(d) = e^-theta*d/d bar
+
+
+//looks like need to add Xt0 = 1 to the embedded matrix to allow an independent term, rather than starting the thing at 1
+
