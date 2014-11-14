@@ -65,7 +65,7 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
 #Xi ended up at.
  
 
- Yhat = sum(weights.*Yi);
+ Yhat = mean(weights.*Yi);
  Yhat = Yhat(1,1)
  
   #B = weights.*Yi;
@@ -124,7 +124,7 @@ clvector=1
 meanvector=1
 for j=1:10;
   for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),j,1,30);
+  [yt,cl] = smap(data,(500+i),(100+i),j,1,2);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -146,7 +146,7 @@ clvector=1
 meanvector=1
 for j=1:10;
   for i=1:30;
-  [yt,cl] = smap(noisydata,(500+i),(100+i),1,1,j);
+  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,2);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
