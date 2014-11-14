@@ -36,7 +36,7 @@ data=flipud(logistic); #flip so that most recent at top, so not going backwards.
 #latest = 90
 #earliest = 150
 
-function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
+function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 
   x=data(latest:earliest,:);
   m=length(x); 
@@ -106,11 +106,11 @@ endfunction
 
 
 ##now use the function:smap(data,earliest,latest,d,Tp,theta)
-#practice: [yt,cl] = smap(data,150,90,2,1,3)
+#practice: [yt,cl,weights,FAR] = smap(data,150,90,2,1,10)
 
 clvector=1
-for i=0:10
-[yt,cl] = smap(data,150,90,i,1,4);
+for i=1:10
+[yt,cl] = smap(data,150,130,i,1,7);
 clvector = [clvector;cl]; 
 endfor
 clvector = clvector(2:(length(clvector)))
@@ -139,7 +139,7 @@ plot (axis, clvector, 'x')
 
 clvector=1
 meanvector=1
-for j=0:9;
+for j=1:10;
   for i=1:30;
   [yt,cl] = smap(data,(500+i),(100+i),j,1,4);
   clvector = [clvector;cl];
