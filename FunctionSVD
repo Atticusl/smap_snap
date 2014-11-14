@@ -1,17 +1,182 @@
-//from Dixon, P. A., M. J. Milicich, and G. Sugihara. (1999) Episodic fluctuations in larval supply. Science 283: 1528-1530
-//Footnote 11
-//For an embedded timeseries Xt is an element of real numbers to the m+1
-//Where the constant term is geven by Xt0==1 
-//and the time series value Tp steps forward is Xt +Tp(1) = Yt
-//forecasts Yhat = sum overj=0 to m Ct(j)Xt(j)
-//for each predictee Xt they used
-//singular value decomposition to solve for C
-//using the rest of the dataset:
-//B=AC
-//where Bi = w(||Xi-Xt||)Yi
-//Aij = w(||Xi-Xt||)Xi(j)
-//w(d) = e^-theta*d/d bar
+#//from Dixon, P. A., M. J. Milicich, and G. Sugihara. (1999) Episodic fluctuations in larval supply. Science 283: 1528-1530
+#//Footnote 11
+#//For an embedded timeseries Xt is an element of real numbers to the m+1
+#//Where the constant term is geven by Xt0==1 
+#and the time series value Tp steps forward is Xt +Tp(1) = Yt
+#forecasts Yhat = sum overj=0 to m Ct(j)Xt(j)
+#for each predictee Xt they used
+#singular value decomposition to solve for C
+#using the rest of the dataset:
+#B=AC
+#where Bi = w(||Xi-Xt||)Yi
+#Aij = w(||Xi-Xt||)Xi(j)
+#w(d) = e^-theta*d/d bar
 
 
-//looks like need to add Xt0 = 1 to the embedded matrix to allow an independent term, rather than starting the thing at 1
+#looks like need to add Xt0 = 1 to the embedded matrix to allow an independent term, rather than starting the thing at 1
+
+##S mapping
+pkg load statistics
+
+cd C:\Octave\Octave-3.8.2
+
+load 'logistic.dat' #load up and pre-process a timeseries of data from the logisic map to use as an example
+#as it is chaotic.
+data=flipud(logistic); #flip so that most recent at top, so not going backwards.
+
+#load 'tinkerbell.dat';
+#data=flipud(tinkerbell);
+
+#may need to then one minus the data if doing
+#one step projection, or Tp minus if doing Tp steps.
+#define m and d, theta and Tp (last 3 will be in function when done)
+#d=2;
+#Tp=1
+#theta=2
+#latest = 90
+#earliest = 150
+
+function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
+
+  x=data(latest:earliest,:);
+  m=length(x); 
+  #always rescale so Xt(0) = 1
+  x = x.+(1-(x(m,:)));
+
+#embed the time series:
+  m = length(x);
+  embedded= ones((m-d),1); #presize a matrix
+  for i= 1:d;
+  col= x([i:(m-(d-(i-1)))],1);
+  embedded= [embedded, col];
+  endfor
+# this embedded has the original column of 1's, so chop them off:
+# Actually, dont!  embedded= embedded(:,2:(d+1));
+
+#embedded is now a matrix of d+1 columns and n-d-1 rows. 
+  [n,dim]= size(embedded);# get size of the embedded time series matrix
+
+#calculate distances between all points to get distbar
+#can do this using pdist (statistics package) so need to load statistics if not already done
+
+  distbar =mean(pdist(embedded))  
+
+#now need the distance between latest simplex and others:
+#Assumes most recent at the top
+
+  Xt = embedded(1,:);
+#Need Yi:
+  Yi = embedded(2:Tp:n-Tp,:);
+#And Xi:
+  Xi = embedded(Tp+2:Tp:n,:);
+#FAR is vector of distances between latest known point and every other point in library
+#i.e Work out (||Xi-Xt||)
+  far = Xi.-Xt;
+  FAR = sqrt(sum(far.^2,2));
+
+#calculate weights
+  weights = exp(-theta.*FAR./distbar);
+#calculate Yhat: yhat = A inverse B Xt
+#where A = weight(||xi-Xt||)Xi and B = weight(||Xi-Xt||)Yi
+#Xi is each point in the library, Xt is the predictee (point) and Yi is where
+#Xi ended up at.
+ 
+
+ #Yhat = mean(weights.*Yi);
+ #Yhat = Yhat(1,1)
+ 
+  B = weights.*Yi;
+  A = weights.*Xi;Yhat
+  Yhat = (A\B).*Xt
+  Yhat = sum(Yhat);
+  Yhat = Yhat(1,2)
+
+#now get the actual true value for the point from the data:
+  tru = data(1:(latest-1),:);
+#always rescale so Xt(0) = 1
+  tru = tru.+(1-(x(m,:)));
+
+
+#Difference from actual point Yt: 
+  Yt = tru(length(tru));
+
+  closeness = sqrt((Yhat-Yt)^2);
+
+endfunction
+
+
+##now use the function:smap(data,earliest,latest,d,Tp,theta)
+#practice: [yt,cl] = smap(data,150,90,2,2,3)
+
+clvector=1
+for i=0:10
+[yt,cl] = smap(data,150,90,2,1,i);
+clvector = [clvector;cl]; 
+endfor
+clvector = clvector(2:(length(clvector)))
+axis = 0:(length(clvector)-1)
+plot (axis, clvector, 'x')
+
+
+clvector=1
+for i=1:10
+[yt,cl] = smap(data,500,98,i,1,5);
+clvector = [clvector;cl];
+endfor
+clvector = clvector(2:(length(clvector)))
+axis = 1:10
+plot (axis, clvector, 'x')
+
+
+
+##not valid to change Tp as not properly accounted for in the function, can sort this out though by using the Tpth row of x
+#to redefine as x but stick with Tp==1 for now
+## for the logistic map best dimensionality is 2, theta is 3
+# for tinkerbell best dimensionality is 1 , theta is 10??
+#very variable results as only using one point for prediction: need to run a few times to do predictions from different
+#starting points and then take the mean.  There is a periodicity depending on the starting point. 
+#reminder:smap(data,earliest,latest,d,Tp,theta)
+
+clvector=1
+meanvector=1
+for j=1:10;
+  for i=1:30;
+  [yt,cl] = smap(data,(500+i),(100+i),j,1,2);
+  clvector = [clvector;cl];
+  endfor
+clvector = clvector(2:(length(clvector)));
+meandist=mean(clvector);
+meanvector=[meanvector;meandist];
+#axis = 1:j
+endfor
+meanvector = meanvector(2:(length(meanvector)));
+
+
+plot (axis, meanvector, 'x')
+
+#tending to prefer nonlinear interpretation, probably because there is no noise and so maps are entirely deterministic.
+#try with noise added: 
+noise = stdnormal_rnd(length(data),1);
+noisydata = data.+noise;
+
+clvector=1
+meanvector=1
+for j=1:10;
+  for i=1:30;
+  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,2);
+  clvector = [clvector;cl];
+  endfor
+clvector = clvector(2:(length(clvector)));
+meandist=mean(clvector);
+meanvector=[meanvector;meandist];
+axis = 1:j
+endfor
+meanvector = meanvector(2:(length(meanvector)));
+
+
+plot (axis, meanvector, 'x')
+##This noisy data also tends to prefer lower dimensionality and embedding dimensions
+##In addition the predictions are not very good, nowhere near what is attained by Sugihara.
+#probably a glitch in the method somewhere...
+
 
