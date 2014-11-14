@@ -51,7 +51,7 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
   embedded= [embedded, col];
   endfor
 # this embedded has the original column of 1's, so chop them off:
-# Actually, dont!  embedded= embedded(:,2:(d+1));
+# Actually, don't!  embedded= embedded(:,2:(d+1));
 
 #embedded is now a matrix of d+1 columns and n-d-1 rows. 
   [n,dim]= size(embedded);# get size of the embedded time series matrix
@@ -86,8 +86,8 @@ function [Yhat, closeness] = smap(data,earliest,latest,d,Tp,theta)
  #Yhat = Yhat(1,1)
  
   B = weights.*Yi;
-  A = weights.*Xi;Yhat
-  Yhat = (A\B).*Xt
+  A = weights.*Xi;
+  Yhat = (A\B).*Xt;
   Yhat = sum(Yhat);
   Yhat = Yhat(1,2)
 
@@ -109,7 +109,7 @@ endfunction
 #practice: [yt,cl] = smap(data,150,90,2,2,3)
 
 clvector=1
-for i=0:10
+for i=0:3
 [yt,cl] = smap(data,150,90,2,1,i);
 clvector = [clvector;cl]; 
 endfor
@@ -139,9 +139,9 @@ plot (axis, clvector, 'x')
 
 clvector=1
 meanvector=1
-for j=1:10;
+for j=0:9;
   for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),j,1,2);
+  [yt,cl] = smap(data,(500+i),(100+i),2,1,j);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -150,9 +150,10 @@ meanvector=[meanvector;meandist];
 #axis = 1:j
 endfor
 meanvector = meanvector(2:(length(meanvector)));
-
+axis = 1:(length(meanvector))
 
 plot (axis, meanvector, 'x')
+
 
 #tending to prefer nonlinear interpretation, probably because there is no noise and so maps are entirely deterministic.
 #try with noise added: 
