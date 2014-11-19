@@ -87,11 +87,13 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 
  #Yhat = sum(weights.*Yi);
  #Yhat = Yhat(1,2)
- 
+ ##we can use pinv to solve local linear regression:
   B = weights.*Yi;
   A = weights.*Xi;
-  Yhat = (A\B).*Xt;
-  Yhat = sum(Yhat);
+  C = pinv(Xi'*Xi)*Xi'*Yi;
+  Yhat =Xt*C
+  #Yhat = (A\B).*Xt;
+  #Yhat = sum(Yhat);
   Yhat = Yhat(1,2)
 
 #now get the actual true value for the point from the data:
@@ -112,7 +114,7 @@ endfunction
 
 clvector=1
 for i=1:10
-[yt,cl,weights,FAR] = smap(data,150,130,i,1,5);
+[yt,cl,weights,FAR] = smap(data,400,130,2,1,i);
 clvector = [clvector;cl]; 
 endfor
 clvector = clvector(2:(length(clvector)))
@@ -143,7 +145,7 @@ clvector=1
 meanvector=1
 for j=1:30;
   for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),j,1,5);
+  [yt,cl] = smap(data,(500+i),(100+i),2,1,j);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -166,7 +168,7 @@ clvector=1
 meanvector=1
 for j=1:10;
   for i=1:30;
-  [yt,cl] = smap(noisydata,(500+i),(100+i),2,1,j);
+  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,2);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
