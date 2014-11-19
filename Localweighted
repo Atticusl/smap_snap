@@ -90,7 +90,8 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
  ##we can use pinv to solve local linear regression:
   B = weights.*Yi;
   A = weights.*Xi;
-  C = pinv(Xi'*Xi)*Xi'*Yi;
+  C = inv(Xi'*Xi)*Xi'*Yi;
+  
   Yhat =Xt*C
   #Yhat = (A\B).*Xt;
   #Yhat = sum(Yhat);
