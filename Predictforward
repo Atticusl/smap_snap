@@ -24,17 +24,21 @@ data=flipud(logistic); #flip so that most recent at top, so not going backwards.
 #data=flipud(tinkerbell);
 
 #define m and d, theta and Tp (last 3 will be in function when done)
-#d=2;
-#Tp=1
-#theta=2
-#latest = 5
-#earliest = 15
+d=2;
+Tp=1
+theta=2
+latest = 5
+earliest = 15
 #data = logistic;
+steps = 5
 
 
-function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
+function [projection] = smap(data,earliest,latest,d,Tp,theta,steps)
+x=data(latest:earliest,:);
+projection=1:steps;
 
-  x=data(latest:earliest,:);
+for pp=1:steps
+
 
 #embed the time series:
   m = length(x);
@@ -43,10 +47,7 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
   col= x([i:(m-(d-(i-1)))],1);
   embedded= [embedded, col];
   endfor
-
 # This now gives us an intercept term as well
-
-#embedded is now a matrix of d+1 columns and n-d-1 rows. 
   [n,dim]= size(embedded);# get size of the embedded time series matrix
 
 #need the distance between latest simplex and others:
@@ -77,26 +78,31 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
  weights=diag(weights);
 C = inv(Xi'*weights*Xi)*Xi'*weights*Yi;
   
-  Yhat =Xt*C
+  Yhat =Xt*C;
   #Yhat = (A\B).*Xt;
   #Yhat = sum(Yhat);
-  Yhat = Yhat(1,2);
+  Yhat_pp = Yhat(1,2);
 
-#now get the actual true value for the point from the data:
-  tru = data(1:(latest-1),:);
-#always rescale so Xt(0) = 1 //try not doing this
- # tru = tru.+(1-(x(m,:)));
+x=[x;Yhat_pp];
+projection(pp)=Yhat_pp;
+endfor
 
 
-#Difference from actual point Yt: 
-  Yt = tru(length(tru));
-  closeness = sqrt((Yhat.-Yt)^2);
+
 
 endfunction
 
 
-##now use the function:smap(data,earliest,latest,d,Tp,theta)
-#practice: [yt,cl,weights,FAR] = smap(data,150,90,2,1,10);
+#try it out: 
+projection=smap(data,150,90,2,1,10,5)
+##need to get longer truths....
+tru = data(1:(latest-1),:);
+#Difference from actual point Yt: 
+  Yt = tru(length(tru));
+  closeness = sqrt((Yhat.-Yt)^2);
+
+##now use the function:smap(data,earliest,latest,d,Tp,theta,steps)
+#practice: [yt,cl,weights,FAR,projection] = smap(data,150,90,2,1,10,5);
 
 clvector=1
 for i=1:10
