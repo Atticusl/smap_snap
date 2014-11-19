@@ -12,11 +12,7 @@
 #Aij = w(||Xi-Xt||)Xi(j)
 #w(d) = e^-theta*d/d bar
 
-
-#looks like need to add Xt0 = 1 to the embedded matrix to allow an independent term, rather than starting the thing at 1
-
 ##S mapping
-pkg load statistics
 
 cd C:\Octave\Octave-3.8.2
 
@@ -27,22 +23,18 @@ data=flipud(logistic); #flip so that most recent at top, so not going backwards.
 #load 'tinkerbell.dat';
 #data=flipud(tinkerbell);
 
-#may need to then one minus the data if doing
-#one step projection, or Tp minus if doing Tp steps.
 #define m and d, theta and Tp (last 3 will be in function when done)
-d=2;
-Tp=1
-theta=2
-latest = 5
-earliest = 15
-data = logistic;
+#d=2;
+#Tp=1
+#theta=2
+#latest = 5
+#earliest = 15
+#data = logistic;
+
 
 function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 
   x=data(latest:earliest,:);
-  m=length(x); 
-  #always rescale so Xt(0) = 1 //try not doing this
-  #x = x.+(1-(x(m,:)));
 
 #embed the time series:
   m = length(x);
@@ -51,18 +43,13 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
   col= x([i:(m-(d-(i-1)))],1);
   embedded= [embedded, col];
   endfor
-# this embedded has the original column of 1's, so chop them off:
-# Actually, don't!  embedded= embedded(:,2:(d+1));
+
+# This now gives us an intercept term as well
 
 #embedded is now a matrix of d+1 columns and n-d-1 rows. 
   [n,dim]= size(embedded);# get size of the embedded time series matrix
 
-#calculate distances between all points to get distbar
-#can do this using pdist (statistics package) so need to load statistics if not already done
-
-  #distbar =mean(pdist(embedded))  
-
-#now need the distance between latest simplex and others:
+#need the distance between latest simplex and others:
 #Assumes most recent at the top
 
   Xt = embedded(1,:);
@@ -70,11 +57,12 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
   Yi = embedded(2:Tp:n-Tp,:);
 #And Xi:
   Xi = embedded(Tp+2:Tp:n,:);
+
 #FAR is vector of distances between latest known point and every other point in library
 #i.e Work out (||Xi-Xt||)
   far = Xi.-Xt;
   FAR = sqrt(sum(far.^2,2));
-  distbar = mean(FAR)
+  distbar = mean(FAR);
 
 #calculate weights These are not normalized, so divide by sum weights
   weights = exp(-theta.*FAR./distbar);
@@ -84,18 +72,15 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 #Xi is each point in the library, Xt is the predictee (point) and Yi is where
 #Xi ended up at.
  
+ ##we can use inv to solve locally weighted linear regression:
 
- #Yhat = sum(weights.*Yi);
- #Yhat = Yhat(1,2)
- ##we can use pinv to solve local linear regression:
-  B = weights.*Yi;
-  A = weights.*Xi;
-  C = inv(Xi'*Xi)*Xi'*Yi;
+ weights=diag(weights);
+C = inv(Xi'*weights*Xi)*Xi'*weights*Yi;
   
   Yhat =Xt*C
   #Yhat = (A\B).*Xt;
   #Yhat = sum(Yhat);
-  Yhat = Yhat(1,2)
+  Yhat = Yhat(1,2);
 
 #now get the actual true value for the point from the data:
   tru = data(1:(latest-1),:);
@@ -115,11 +100,11 @@ endfunction
 
 clvector=1
 for i=1:10
-[yt,cl,weights,FAR] = smap(data,400,130,2,1,i);
+[yt,cl,weights,FAR] = smap(data,400,130,i,1,10);
 clvector = [clvector;cl]; 
 endfor
 clvector = clvector(2:(length(clvector)))
-axis = 0:(length(clvector)-1)
+axis = 1:(length(clvector))
 plot (axis, clvector, 'x')
 
 
@@ -144,9 +129,9 @@ plot (axis, clvector, 'x')
 
 clvector=1
 meanvector=1
-for j=1:30;
+for j=1:5;
   for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),2,1,j);
+  [yt,cl] = smap(data,(500+i),(100+i),j,1,15);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -160,16 +145,15 @@ axis = 1:(length(meanvector))
 plot (axis, meanvector, 'x')
 
 
-#tending to prefer nonlinear interpretation, probably because there is no noise and so maps are entirely deterministic.
 #try with noise added: 
-noise = stdnormal_rnd(length(data),1);
+noise = (stdnormal_rnd(length(data),1))./10;
 noisydata = data.+noise;
 
 clvector=1
 meanvector=1
 for j=1:10;
   for i=1:30;
-  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,2);
+  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,15);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -179,10 +163,7 @@ axis = 1:j
 endfor
 meanvector = meanvector(2:(length(meanvector)));
 
-
 plot (axis, meanvector, 'x')
-##This noisy data also tends to prefer lower dimensionality and embedding dimensions
-##In addition the predictions are not very good, nowhere near what is attained by Sugihara.
-#probably a glitch in the method somewhere...
+
 
 
