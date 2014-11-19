@@ -33,7 +33,7 @@ earliest = 15
 steps = 5
 
 
-function [projection] = smap(data,earliest,latest,d,Tp,theta,steps)
+function [projection,tru,gap] = smap(data,earliest,latest,d,Tp,theta,steps)
 x=data(latest:earliest,:);
 projection=1:steps;
 
@@ -83,20 +83,37 @@ C = inv(Xi'*weights*Xi)*Xi'*weights*Yi;
   #Yhat = sum(Yhat);
   Yhat_pp = Yhat(1,2);
 
-x=[x;Yhat_pp];
+x=[Yhat_pp;x];
 projection(pp)=Yhat_pp;
 endfor
 
-
-
+projection=projection';
+tru = data(1:(latest-1),:);
+tru= tru((length(tru)-(steps-1)):length(tru));
+tru=flipud(tru);
+gap = sqrt((projection.-tru).^2);
 
 endfunction
 
 
 #try it out: 
-projection=smap(data,150,90,2,1,10,5)
-##need to get longer truths....
-tru = data(1:(latest-1),:);
+[projection,tru,gap]=smap(data,300,90,2,1,10,30)
+
+plot(gap)
+
+##Grows initially then more random.  
+#need to repeat and mean to get average skill in projection:
+
+gapmatrix=zeros(20,25);
+[n,m]=size(gapmatrix);
+for rr=1:25
+rand=(randi(50)+i);
+[projection,tru,gap_rr]=smap(data,(300+rand),(90+rand),2,1,10,20);
+gapmatrix(1:n,rr)=gap_rr;
+endfor
+meandiffs=mean(gapmatrix,2)
+plot(meandiffs)
+
 #Difference from actual point Yt: 
   Yt = tru(length(tru));
   closeness = sqrt((Yhat.-Yt)^2);
