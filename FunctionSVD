@@ -30,11 +30,12 @@ data=flipud(logistic); #flip so that most recent at top, so not going backwards.
 #may need to then one minus the data if doing
 #one step projection, or Tp minus if doing Tp steps.
 #define m and d, theta and Tp (last 3 will be in function when done)
-#d=2;
-#Tp=1
-#theta=2
-#latest = 90
-#earliest = 150
+d=2;
+Tp=1
+theta=2
+latest = 5
+earliest = 15
+data = logistic;
 
 function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 
@@ -59,7 +60,7 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 #calculate distances between all points to get distbar
 #can do this using pdist (statistics package) so need to load statistics if not already done
 
-  distbar =mean(pdist(embedded))  
+  #distbar =mean(pdist(embedded))  
 
 #now need the distance between latest simplex and others:
 #Assumes most recent at the top
@@ -73,6 +74,7 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 #i.e Work out (||Xi-Xt||)
   far = Xi.-Xt;
   FAR = sqrt(sum(far.^2,2));
+  distbar = mean(FAR)
 
 #calculate weights These are not normalized, so divide by sum weights
   weights = exp(-theta.*FAR./distbar);
@@ -83,14 +85,14 @@ function [Yhat, closeness, weights, FAR] = smap(data,earliest,latest,d,Tp,theta)
 #Xi ended up at.
  
 
- Yhat = sum(weights.*Yi);
- Yhat = Yhat(1,2)
+ #Yhat = sum(weights.*Yi);
+ #Yhat = Yhat(1,2)
  
-  #B = weights.*Yi;
-  #A = weights.*Xi;
-  #Yhat = (A\B).*Xt;
-  #Yhat = sum(Yhat);
-  #Yhat = Yhat(1,2)
+  B = weights.*Yi;
+  A = weights.*Xi;
+  Yhat = (A\B).*Xt;
+  Yhat = sum(Yhat);
+  Yhat = Yhat(1,2)
 
 #now get the actual true value for the point from the data:
   tru = data(1:(latest-1),:);
@@ -110,7 +112,7 @@ endfunction
 
 clvector=1
 for i=1:10
-[yt,cl] = smap(data,150,130,1,1,i);
+[yt,cl,weights,FAR] = smap(data,150,130,i,1,5);
 clvector = [clvector;cl]; 
 endfor
 clvector = clvector(2:(length(clvector)))
@@ -141,7 +143,7 @@ clvector=1
 meanvector=1
 for j=1:30;
   for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),1,1,j);
+  [yt,cl] = smap(data,(500+i),(100+i),j,1,5);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -164,7 +166,7 @@ clvector=1
 meanvector=1
 for j=1:10;
   for i=1:30;
-  [yt,cl] = smap(noisydata,(500+i),(100+i),j,1,2);
+  [yt,cl] = smap(noisydata,(500+i),(100+i),2,1,j);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
