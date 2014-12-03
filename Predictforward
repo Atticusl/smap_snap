@@ -88,10 +88,10 @@ projection(pp)=Yhat_pp;
 endfor
 
 projection=projection';
-tru = data(1:(latest-1),:);
-tru= tru((length(tru)-(steps-1)):length(tru));
-tru=flipud(tru);
-gap = sqrt((projection.-tru).^2);
+#tru = data(1:(latest-1),:);
+#tru= tru((length(tru)-(steps-1)):length(tru));
+#tru=flipud(tru);
+#gap = sqrt((projection.-tru).^2);
 
 endfunction
 
@@ -106,9 +106,9 @@ plot(gap)
 
 gapmatrix=zeros(20,25);
 [n,m]=size(gapmatrix);
-for rr=1:25
+for rr=1:100
 rand=(randi(50)+i);
-[projection,tru,gap_rr]=smap(data,(300+rand),(90+rand),2,1,10,20);
+[projection,tru,gap_rr]=smap(data,(200+rand),(90+rand),2,1,13,20);
 gapmatrix(1:n,rr)=gap_rr;
 endfor
 meandiffs=mean(gapmatrix,2)
@@ -118,18 +118,22 @@ plot(meandiffs)
   Yt = tru(length(tru));
   closeness = sqrt((Yhat.-Yt)^2);
 
-##now use the function:smap(data,earliest,latest,d,Tp,theta,steps)
-#practice: [yt,cl,weights,FAR,projection] = smap(data,150,90,2,1,10,5);
+##now use the function: [projection,tru,gap] = smap(data,earliest,latest,d,Tp,theta,steps)
+data = flipud(sunspot);
 
 clvector=1
-for i=1:10
-[yt,cl,weights,FAR] = smap(data,400,130,i,1,10);
+for i=1:20
+[projection,tru,cl] = smap(data,250,200,2,i,13,1);
 clvector = [clvector;cl]; 
 endfor
-clvector = clvector(2:(length(clvector)))
-axis = 1:(length(clvector))
+clvector = clvector(2:(length(clvector)));
+axis = 1:(length(clvector));
 plot (axis, clvector, 'x')
 
+#get: [projection,tru,cl] = smap(data,400,130,12,1,15,1); but forgot to flip!
+#get [projection,tru,cl] = smap(data,400,130,12,1,14,1)
+
+[projection,tru,cl] = smap(data,3191,1,12,1,15,5)
 
 clvector=1
 for i=1:10
@@ -152,9 +156,9 @@ plot (axis, clvector, 'x')
 
 clvector=1
 meanvector=1
-for j=1:5;
-  for i=1:30;
-  [yt,cl] = smap(data,(500+i),(100+i),j,1,15);
+for j=1:20;
+  for i=1:50;
+  [yt,cl] = smap(data,(200+i),(100+i),12,1,j,1);
   clvector = [clvector;cl];
   endfor
 clvector = clvector(2:(length(clvector)));
@@ -163,9 +167,12 @@ meanvector=[meanvector;meandist];
 #axis = 1:j
 endfor
 meanvector = meanvector(2:(length(meanvector)));
-axis = 1:(length(meanvector))
+axis = 1:(length(meanvector));
 
 plot (axis, meanvector, 'x')
+
+#for yearly sunspots get d either 1 or 12, same for theta, probably some error as too similar.
+#projection: 
 
 
 #try with noise added: 
